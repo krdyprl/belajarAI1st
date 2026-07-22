@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #7C3AED;
+  --color-primary-dark: #5B21B6;
+  --color-primary-bg: #F5F3FF;
+  --color-surface: #FFFFFF;
+  --color-text: #111827;
+  --color-text-secondary: #4B5563;
+  --color-success: #059669;
+  --color-success-bg: #ECFDF5;
+  --color-warning: #D97706;
+  --color-warning-bg: #FFFBEB;
+  --color-error: #DC2626;
+  --color-error-bg: #FEF2F2;
+
+  --font-size-base: 1.125rem;
+  --spacing: 0.25rem;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 1.125rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* utility untuk touch target minimal 48px */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* utility untuk teks besar */
+.text-body {
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+.text-body-sm {
+  font-size: 1rem;
+  line-height: 1.5;
+}
