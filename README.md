@@ -440,7 +440,7 @@ Setelah menjalankan `seed/start.sql`, gunakan akun berikut untuk testing:
 
 | Resource | Link |
 |----------|------|
-| 🌐 **Live Demo** | [https://medcarenext.netlify.app/login](https://medcarenext.netlify.app/login) |
+| 🌐 **Live Demo** | [https://medcarenext.netlify.app](https://medcarenext.netlify.app) |
 | 📦 **GitHub Repo** | [https://github.com/krdyprl/belajarAI1st](https://github.com/krdyprl/belajarAI1st) |
 | 📄 **PRD** | [`docs/prd.md`](docs/prd.md) |
 | 📊 **DFD** | [`docs/dfd.md`](docs/dfd.md) |
