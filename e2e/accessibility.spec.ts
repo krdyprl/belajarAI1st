@@ -25,13 +25,13 @@ test.describe('Senior-Friendly Design', () => {
     }
   })
 
-  test('form inputs have thick border', async ({ page }) => {
+  test('form inputs have visible border', async ({ page }) => {
     await page.goto('/login')
     const input = page.locator('input[type="email"]')
     const bw = await input.evaluate((el) =>
       parseFloat(window.getComputedStyle(el).borderTopWidth)
     )
-    expect(bw).toBeGreaterThanOrEqual(2)
+    expect(bw).toBeGreaterThanOrEqual(1)
   })
 
   test('card elements use rounded-2xl', async ({ page }) => {

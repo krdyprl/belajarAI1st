@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { logActivity } from '../lib/services/logger'
 import type { Profile } from '../lib/api/profiles'
 
 interface AuthState {
@@ -36,32 +37,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   async function fetchProfile(userId: string) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     setProfile(data as Profile | null)
   }
 
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password })
+    if (!error && data.user) logActivity(data.user.id, 'login', 'profile')
     return error?.message ?? null
   }
 
   async function signUp(email: string, password: string, fullName: string, role: string) {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName, role },
-      },
-    })
+    const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, role } } })
     return error?.message ?? null
   }
 
   async function signOut() {
+    const currentUser = user
     await supabase.auth.signOut()
+    if (currentUser) logActivity(currentUser.id, 'logout', 'profile')
     setProfile(null)
   }
 

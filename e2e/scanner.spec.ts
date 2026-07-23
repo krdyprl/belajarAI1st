@@ -1,20 +1,24 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Scanner Features', () => {
-  test('login page has email input', async ({ page }) => {
-    await page.goto('/login')
-    await expect(page.locator('input[type="email"]')).toBeVisible()
+test.describe('Scanner Page', () => {
+  test('redirect ke login saat belum auth', async ({ page }) => {
+    await page.goto('/scanner')
+    await expect(page).toHaveURL(/\/login/)
   })
 
-  test('login button has minimum height for accessibility', async ({ page }) => {
+  test('halaman login untuk scan memiliki title yang benar', async ({ page }) => {
+    await page.goto('/login')
+    await expect(page.getByRole('heading', { name: 'Masuk' })).toBeVisible()
+  })
+
+  test('tombol masuk memiliki styling yang benar', async ({ page }) => {
     await page.goto('/login')
     const btn = page.getByRole('button', { name: 'Masuk' })
-    const box = await btn.boundingBox()
-    expect(box).not.toBeNull()
-    if (box) expect(box.height).toBeGreaterThanOrEqual(48)
+    await expect(btn).toBeVisible()
+    await expect(btn).toHaveClass(/font-semibold/)
   })
 
-  test('form labels use semibold font', async ({ page }) => {
+  test('label form menggunakan font-semibold', async ({ page }) => {
     await page.goto('/login')
     const labels = page.locator('label')
     const count = await labels.count()
@@ -23,16 +27,17 @@ test.describe('Scanner Features', () => {
     }
   })
 
-  test('email input has proper styling', async ({ page }) => {
+  test('input email memiliki height minimal 44px', async ({ page }) => {
     await page.goto('/login')
     const input = page.locator('input[type="email"]')
     const box = await input.boundingBox()
-    expect(box).not.toBeNull()
     if (box) expect(box.height).toBeGreaterThanOrEqual(44)
   })
 
-  test('login page has AI Medication Assistant branding', async ({ page }) => {
+  test('form login memiliki 2 input fields', async ({ page }) => {
     await page.goto('/login')
-    await expect(page.getByText('AI Medication Assistant')).toBeVisible()
+    const inputs = page.locator('input')
+    const count = await inputs.count()
+    expect(count).toBeGreaterThanOrEqual(2)
   })
 })

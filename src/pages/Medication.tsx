@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit3, Trash2, CheckCircle, Clock, Pill as PillIcon } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { getFamilyMedications, createMedication, updateMedication, deleteMedication, markAsTaken, logActivity } from '../lib/services'
+import { supabase } from '../lib/services'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Badge from '../components/Badge'
@@ -12,6 +14,7 @@ type Tab = 'list' | 'schedule'
 
 export default function MedicationPage() {
   const { user, profile } = useAuth()
+  const isDokter = profile?.role === 'dokter'
   const [tab, setTab] = useState<Tab>('list')
   const [medications, setMedications] = useState<Medication[]>([])
   const [loading, setLoading] = useState(true)
@@ -25,33 +28,28 @@ export default function MedicationPage() {
   async function loadMedications() {
     setLoading(true)
     try {
-      const { getFamilyMedications } = await import('../lib/api/medications')
-      if (profile?.family_id) {
-        setMedications(await getFamilyMedications(profile.family_id))
-      }
-    } catch {
-      toast.error('Gagal memuat data')
-    } finally { setLoading(false) }
+      if (profile?.family_id) setMedications(await getFamilyMedications(profile.family_id))
+    } catch { toast.error('Gagal memuat data') }
+    finally { setLoading(false) }
   }
 
   async function handleSave(data: Partial<Medication>) {
     try {
-      const { createMedication, updateMedication } = await import('../lib/api/medications')
-      const { supabase } = await import('../lib/supabase')
-
       if (editing) {
         await updateMedication(editing.id, data)
+        logActivity(user!.id, 'update', 'medication', editing.id, data as any)
         toast.success('Obat diperbarui')
       } else {
         const { data: patients } = await supabase
           .from('patients').select('id').eq('family_id', profile?.family_id).limit(1)
         if (!patients?.length) { toast.error('Belum ada pasien.'); return }
-        await createMedication({
+        const created = await createMedication({
           patient_id: patients[0].id, created_by: user!.id,
           nama_obat: data.nama_obat || '', dosis: data.dosis || '',
           frekuensi: data.frekuensi || '', instruksi_khusus: data.instruksi_khusus || '',
           status_bpom: 'pending', nomor_bpom: '', image_url: '',
         })
+        logActivity(user!.id, 'create', 'medication', created.id, { nama_obat: created.nama_obat })
         toast.success('Obat ditambahkan')
       }
       setShowForm(false); setEditing(null)
@@ -62,8 +60,8 @@ export default function MedicationPage() {
   async function handleDelete(id: string) {
     if (!confirm('Hapus obat ini?')) return
     try {
-      const { deleteMedication } = await import('../lib/api/medications')
       await deleteMedication(id)
+      logActivity(user!.id, 'delete', 'medication', id)
       toast.success('Obat dihapus')
       loadMedications()
     } catch { toast.error('Gagal menghapus') }
@@ -71,8 +69,8 @@ export default function MedicationPage() {
 
   async function handleTaken(id: string) {
     try {
-      const { markAsTaken } = await import('../lib/api/medications')
       await markAsTaken(id)
+      logActivity(user!.id, 'taken', 'medication', id)
       toast.success('Sudah diminum')
       loadMedications()
     } catch { toast.error('Gagal') }
@@ -90,9 +88,11 @@ export default function MedicationPage() {
           <h1 className="text-2xl font-bold text-text">Obat Saya</h1>
           <p className="text-body text-text-secondary mt-0.5">Daftar obat yang diminum</p>
         </div>
-        <Button size="sm" onClick={() => { setEditing(null); setShowForm(true) }}>
-          <Plus className="w-5 h-5" /> Tambah
-        </Button>
+        {isDokter && (
+          <Button size="sm" onClick={() => { setEditing(null); setShowForm(true) }}>
+            <Plus className="w-5 h-5" /> Tambah
+          </Button>
+        )}
       </div>
 
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 text-base">
@@ -114,7 +114,8 @@ export default function MedicationPage() {
       ) : medications.length === 0 ? (
         <Card>
           <p className="text-body text-text-secondary text-center py-8 sm:py-12">
-            Belum ada obat. Foto kemasan obat atau tekan "Tambah" untuk memulai.
+            Belum ada obat.
+            {isDokter ? ' Foto kemasan obat atau tekan "Tambah" untuk memulai.' : ' Hubungi dokter untuk menambahkan obat.'}
           </p>
         </Card>
       ) : tab === 'list' ? (
@@ -136,16 +137,18 @@ export default function MedicationPage() {
                   {med.instruksi_khusus && (
                     <p className="text-base text-text-secondary mt-1 italic">* {med.instruksi_khusus}</p>
                   )}
-                  <div className="flex items-center gap-3 mt-3">
-                    <button onClick={() => { setEditing(med); setShowForm(true) }}
-                      className="text-base text-text-secondary hover:text-primary font-semibold flex items-center gap-1.5 touch-target px-3 py-1.5 rounded-lg hover:bg-gray-50">
-                      <Edit3 className="w-4 h-4" /> Edit
-                    </button>
-                    <button onClick={() => handleDelete(med.id)}
-                      className="text-base text-text-secondary hover:text-error font-semibold flex items-center gap-1.5 touch-target px-3 py-1.5 rounded-lg hover:bg-error-bg">
-                      <Trash2 className="w-4 h-4" /> Hapus
-                    </button>
-                  </div>
+                  {isDokter && (
+                    <div className="flex items-center gap-3 mt-3">
+                      <button onClick={() => { setEditing(med); setShowForm(true) }}
+                        className="text-base text-text-secondary hover:text-primary font-semibold flex items-center gap-1.5 touch-target px-3 py-1.5 rounded-lg hover:bg-gray-50">
+                        <Edit3 className="w-4 h-4" /> Edit
+                      </button>
+                      <button onClick={() => handleDelete(med.id)}
+                        className="text-base text-text-secondary hover:text-error font-semibold flex items-center gap-1.5 touch-target px-3 py-1.5 rounded-lg hover:bg-error-bg">
+                        <Trash2 className="w-4 h-4" /> Hapus
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>

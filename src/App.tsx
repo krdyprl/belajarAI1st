@@ -9,6 +9,9 @@ import Dashboard from './pages/Dashboard'
 import Medication from './pages/Medication'
 import Scanner from './pages/Scanner'
 import Journal from './pages/Journal'
+import Profile from './pages/Profile'
+import Consultation from './pages/Consultation'
+import ConsultationDetail from './pages/ConsultationDetail'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -44,6 +47,9 @@ export default function App() {
         <Route path="/medication" element={<ProtectedRoute><Medication /></ProtectedRoute>} />
         <Route path="/scanner" element={<ProtectedRoute><Scanner /></ProtectedRoute>} />
         <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/consultation" element={<ProtectedRoute><Consultation /></ProtectedRoute>} />
+        <Route path="/consultation/:id" element={<ProtectedRoute><ConsultationDetail /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { MessageCircle, Stethoscope, Clock, Send } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { getFamilyJournals, createJournal, analyzeJournal, getPatientId, logActivity } from '../lib/services'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import type { Journal } from '../lib/api/journals'
@@ -26,10 +27,7 @@ export default function JournalPage() {
   async function loadJournals() {
     setLoading(true)
     try {
-      const { getFamilyJournals } = await import('../lib/api/journals')
-      if (profile?.family_id) {
-        setJournals(await getFamilyJournals(profile.family_id))
-      }
+      if (profile?.family_id) setJournals(await getFamilyJournals(profile.family_id))
     } catch { toast.error('Gagal memuat catatan') }
     finally { setLoading(false) }
   }
@@ -45,19 +43,12 @@ export default function JournalPage() {
     })
 
     try {
-      const { analyzeJournal } = await import('../lib/api/gemini')
-      const { createJournal } = await import('../lib/api/journals')
-      const { supabase } = await import('../lib/supabase')
-
-      const { data: patients } = await supabase
-        .from('patients').select('id').eq('family_id', profile?.family_id).limit(1)
-      if (!patients?.length) { toast.error('Belum ada pasien.'); setSending(false); return }
+      const pid = await getPatientId(user!.id, profile?.role || 'pasien', profile?.family_id)
+      if (!pid) { toast.error('Belum ada pasien.'); setSending(false); setActiveJournal(null); return }
 
       const response = await analyzeJournal(text)
-      const saved = await createJournal({
-        patient_id: patients[0].id, created_by: user!.id,
-        keluhan_teks: text, analisis_ai: response,
-      })
+      const saved = await createJournal({ patient_id: pid, created_by: user!.id, keluhan_teks: text, analisis_ai: response })
+      logActivity(user!.id, 'journal', 'journal', saved.id, { keluhan: text.substring(0, 100) })
       setActiveJournal(saved)
       setJournals((prev) => [saved, ...prev])
     } catch (err) {
