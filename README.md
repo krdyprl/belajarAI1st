@@ -424,6 +424,20 @@ netlify deploy --prod --dir=dist
 
 ---
 
+## 🔑 Test Credentials
+
+Setelah menjalankan `seed/start.sql`, gunakan akun berikut untuk testing:
+
+| Role | Email | Password |
+|------|-------|----------|
+| 👨‍⚕️ **Dokter** | `prlkrdy@gmail.com` | `test123` |
+| 👪 **Keluarga** | `kiparulian@gmail.com` | `test123` |
+| 🧑 **Pasien** | `nanyardak098@gmail.com` | `test123` |
+
+> Email tersebut sudah di-set di seed SQL. Password default `test123` — ubah di Supabase Dashboard setelah login pertama.
+
+---
+
 ## 🔗 Demo & Link
 
 | Resource | Link |
