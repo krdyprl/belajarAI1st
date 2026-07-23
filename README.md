@@ -29,7 +29,6 @@
 - [Deployment](#-deployment)
 - [Demo & Link](#-demo--link)
 - [Sejauh Mana Project Ini?](#-sejauh-mana-project-ini)
-- [⚠️ Catatan Keamanan — Key Bocor](#️-catatan-keamanan--key-bocor)
 - [Dokumentasi Lain](#-dokumentasi-lain)
 
 ---
@@ -507,8 +506,6 @@ Setelah menjalankan `seed/start.sql`, gunakan akun berikut untuk testing:
 ---
 
 ## ⚠️ Keamanan — API Key Management
-
-Project ini menggunakan beberapa API key yang **tidak boleh** terekspos di git.
 
 ### Yang sudah dilakukan:
 
