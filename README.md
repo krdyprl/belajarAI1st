@@ -26,10 +26,11 @@
 - [Cara Install & Menjalankan](#-cara-install--menjalankan)
 - [Cara Menulis Commit](#-cara-menulis-commit)
 - [Testing](#-testing)
+- [Testing](#-testing)
 - [Deployment](#-deployment)
 - [Demo & Link](#-demo--link)
 - [Sejauh Mana Project Ini?](#-sejauh-mana-project-ini)
-- [⚠️ Catatan Keamanan — Key Bocor](#️-catatan-keamanan--key-bocor)
+- [Keamanan API Key](#️-keamanan--api-key-management)
 - [Dokumentasi Lain](#-dokumentasi-lain)
 
 ---
@@ -430,11 +431,12 @@ Setelah menjalankan `seed/start.sql`, gunakan akun berikut untuk testing:
 
 | Role | Email | Password |
 |------|-------|----------|
-| 👨‍⚕️ **Dokter** | `prlkrdy@gmail.com` | `test123` |
+| 👨‍⚕️ **Dokter** | `prlkrdy@gmail.com` | `123456admin` |
+| 👪 **Keluarga** | `kiparulian@gmail.com` | `test123` |
+| 🧑 **Pasien** | `nanyardak098@gmail.com` | `test123` |
 | 👪 **Keluarga** | `kiparulian@gmail.com` | `test123` |
 | 🧑 **Pasien** | `nanyardak098@gmail.com` | `test123` |
 
-> Email tersebut sudah di-set di seed SQL. Password default `test123` — ubah di Supabase Dashboard setelah login pertama.
 
 ---
 
@@ -442,7 +444,7 @@ Setelah menjalankan `seed/start.sql`, gunakan akun berikut untuk testing:
 
 | Resource | Link |
 |----------|------|
-| 🌐 **Live Demo** | [https://belajar-ai-1st.netlify.app](https://belajar-ai-1st.netlify.app) |
+| 🌐 **Live Demo** | [https://belajar-ai-1st.netlify.app](https://belajar-ai-1st.netlify.app) (Netlify) |
 | 📦 **GitHub Repo** | [https://github.com/krdyprl/belajarAI1st](https://github.com/krdyprl/belajarAI1st) |
 | 📄 **PRD** | [`docs/prd.md`](docs/prd.md) |
 | 📊 **DFD** | [`docs/dfd.md`](docs/dfd.md) |
