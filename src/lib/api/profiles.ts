@@ -1,6 +1,6 @@
 import { supabase } from '../supabase'
 
-export type UserRole = 'admin' | 'keluarga' | 'pasien'
+export type UserRole = 'dokter' | 'keluarga' | 'pasien'
 
 export interface Profile {
   id: string

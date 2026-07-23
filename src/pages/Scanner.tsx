@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react'
 import { Camera, Upload, ScanLine, ArrowLeft, CheckCircle, AlertTriangle, XCircle, Loader2 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+import { scanMedicine, validateMedicine, createMedication, getPatientId, logActivity, supabase } from '../lib/services'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Badge from '../components/Badge'
@@ -14,6 +16,8 @@ type BpomState = {
 }
 
 export default function Scanner() {
+  const { profile } = useAuth()
+  const isDokter = profile?.role === 'dokter'
   const [image, setImage] = useState<string | null>(null)
   const [result, setResult] = useState<ScanResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -70,7 +74,6 @@ export default function Scanner() {
     if (!image) return
     setLoading(true)
     try {
-      const { scanMedicine } = await import('../lib/api/gemini')
       const base64 = image.split(',')[1]
       const scanned = await scanMedicine(base64, 'image/jpeg')
       setResult(scanned)
@@ -78,40 +81,35 @@ export default function Scanner() {
       if (scanned.nama_obat) {
         setBpom((prev) => ({ ...prev, loading: true }))
         try {
-          const { validateMedicine } = await import('../lib/api/bpom')
           const bpomResult = await validateMedicine(scanned.nama_obat, scanned.nomor_bpom)
           setBpom({ status: bpomResult.status, loading: false, detail: bpomResult.detail })
-        } catch {
-          setBpom({ status: 'pending', loading: false, detail: null })
-        }
+        } catch { setBpom({ status: 'pending', loading: false, detail: null }) }
       }
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) logActivity(user.id, 'scan', 'medication', undefined, { nama_obat: scanned.nama_obat })
     } catch (err) {
-      toast.error(`Gagal: ${err instanceof Error ? err.message : 'Coba lagi'}`)
-    } finally {
-      setLoading(false)
-    }
+      toast.error(`Gagal memindai: ${err instanceof Error ? err.message : 'Coba lagi'}`)
+    } finally { setLoading(false) }
   }
 
   async function handleSave() {
     if (!result) return
     setSaving(true)
     try {
-      const { createMedication } = await import('../lib/api/medications')
-      const { supabase } = await import('../lib/supabase')
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { toast.error('Silakan masuk dulu.'); return }
 
-      const { data: patients } = await supabase
-        .from('patients').select('id').limit(1)
-      if (!patients?.length) { toast.error('Belum ada pasien.'); return }
+      const pid = await getPatientId(user.id, profile?.role || 'dokter', profile?.family_id)
+      if (!pid) { toast.error('Belum ada pasien.'); return }
 
-      await createMedication({
-        patient_id: patients[0].id, created_by: user.id,
+      const created = await createMedication({
+        patient_id: pid, created_by: user.id,
         nama_obat: result.nama_obat, dosis: result.dosis,
         frekuensi: result.frekuensi, instruksi_khusus: '',
         status_bpom: bpom.loading ? 'pending' : bpom.status,
         nomor_bpom: result.nomor_bpom, image_url: image || '',
       })
+      logActivity(user.id, 'create', 'medication', created.id, { nama_obat: result.nama_obat })
       setSaved(true)
       toast.success('Obat disimpan!')
     } catch {
@@ -213,19 +211,27 @@ export default function Scanner() {
                   <Field label="Produsen" value={result.produsen} />
                 </div>
 
-                {!saved ? (
-                  <div className="flex flex-col sm:flex-row gap-3 mt-5">
-                    <Button onClick={handleSave} loading={saving} className="w-full sm:flex-1 text-lg" size="lg">
-                      Simpan Obat
-                    </Button>
-                    <Button variant="secondary" onClick={reset} className="w-full sm:flex-1 text-lg" size="lg">
+                {isDokter ? (
+                  !saved ? (
+                    <div className="flex flex-col sm:flex-row gap-3 mt-5">
+                      <Button onClick={handleSave} loading={saving} className="w-full sm:flex-1 text-lg" size="lg">
+                        Simpan Obat
+                      </Button>
+                      <Button variant="secondary" onClick={reset} className="w-full sm:flex-1 text-lg" size="lg">
+                        Foto Lagi
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mt-5 p-4 bg-success-bg rounded-xl text-center">
+                      <p className="text-base font-bold text-success">Obat berhasil disimpan!</p>
+                      <Button variant="secondary" onClick={reset} className="mt-3 text-lg" size="md">Foto Lagi</Button>
+                    </div>
+                  )
+                ) : (
+                  <div className="mt-5">
+                    <Button variant="secondary" onClick={reset} className="w-full text-lg" size="lg">
                       Foto Lagi
                     </Button>
-                  </div>
-                ) : (
-                  <div className="mt-5 p-4 bg-success-bg rounded-xl text-center">
-                    <p className="text-base font-bold text-success">Obat berhasil disimpan!</p>
-                    <Button variant="secondary" onClick={reset} className="mt-3 text-lg" size="md">Foto Lagi</Button>
                   </div>
                 )}
               </Card>
