@@ -2,15 +2,10 @@
 -- SEED DATA - AI Medication Assistant
 -- ============================================
 -- CARA PAKAI:
--- 1. Buka SQL Editor di Supabase Dashboard
--- 2. Cari & ganti 3 email di bawah
+-- 1. Daftar 3 akun dari aplikasi dulu (Register)
+-- 2. Copy SQL ini ke Supabase SQL Editor
 -- 3. RUN
 -- ============================================
-
--- Cari & ganti:
---   __DOKTER__   → email dokter (misal: prlkrdy@gmail.com)
---   __KELUARGA__ → email keluarga (misal: keluarga@gmail.com)
---   __PASIEN__   → email pasien (misal: pasien@gmail.com)
 
 do $$
 declare
@@ -18,10 +13,12 @@ declare
   v_fam uuid; v_pid uuid;
 begin
   select id into v_dokter from auth.users where email = 'prlkrdy@gmail.com';
-  select id into v_keluarga from auth.users where email = 'keluarga@gmail.com';
-  select id into v_pasien from auth.users where email = 'pasien@gmail.com';
+  select id into v_keluarga from auth.users where email = 'kiparulian@gmail.com';
+  select id into v_pasien from auth.users where email = 'nanyardak098@gmail.com';
 
-  if v_dokter is null then raise notice 'ERROR: __DOKTER__ tidak ditemukan. Buat akun dulu.'; return; end if;
+  if v_dokter is null then raise notice 'ERROR: prlkrdy@gmail.com belum terdaftar. Daftar dulu dari aplikasi.'; return; end if;
+  if v_keluarga is null then raise notice 'ERROR: kiparulian@gmail.com belum terdaftar. Daftar dulu dari aplikasi.'; return; end if;
+  if v_pasien is null then raise notice 'ERROR: nanyardak098@gmail.com belum terdaftar. Daftar dulu dari aplikasi.'; return; end if;
 
   insert into families (name, created_by) values ('Keluarga Saya', v_dokter)
   on conflict do nothing returning id into v_fam;
