@@ -42,9 +42,10 @@ export async function getFamilyMedications(familyId: string) {
 }
 
 export async function markAsTaken(id: string) {
+  const now = new Date().toISOString()
   const { data, error } = await supabase
     .from('medications')
-    .update({ last_taken_at: new Date().toISOString() })
+    .update({ last_taken_at: now })
     .eq('id', id)
     .select()
     .single()
@@ -96,7 +97,6 @@ export async function uploadMedicineImage(
     .from('medicine-images')
     .upload(path, file)
   if (error) throw error
-
   const { data } = supabase.storage
     .from('medicine-images')
     .getPublicUrl(path)

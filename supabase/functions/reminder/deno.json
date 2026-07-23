@@ -1,0 +1,11 @@
+{
+  "name": "reminder",
+  "version": "1.0.0",
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts"
+  },
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
+    "resend": "npm:resend@2"
+  }
+}

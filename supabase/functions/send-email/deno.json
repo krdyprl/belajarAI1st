@@ -1,0 +1,10 @@
+{
+  "name": "send-email",
+  "version": "1.0.0",
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts"
+  },
+  "imports": {
+    "resend": "npm:resend@2"
+  }
+}

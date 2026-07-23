@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Pill, Stethoscope, Activity, TrendingUp, Sparkles, Calendar, Moon, CheckCircle, MessageSquareText, Scan, BookOpen } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { getFamilyMedications, getFamilyJournals, getConsultations, markAsTaken, generateSummary, logActivity } from '../lib/services'
+import { getFamilyMedications, getFamilyJournals, getConsultations, markAsTaken, generateSummary, logActivity, sendTakenNotification, supabase } from '../lib/services'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Badge from '../components/Badge'
@@ -168,8 +168,12 @@ export default function Dashboard() {
                 </div>
                 <Button size="sm" variant="success" onClick={async () => {
                   try {
-                    await markAsTaken(med.id)
+                    const m = await markAsTaken(med.id)
                     if (user) logActivity(user.id, 'taken', 'medication', med.id)
+                    const { data: dr } = await supabase.from('profiles').select('id').eq('role', 'dokter').limit(1).maybeSingle()
+                    const { data: fams } = await supabase.from('profiles').select('id').eq('family_id', profile?.family_id).in('role', ['dokter', 'keluarga'])
+                    const ids = [...new Set([dr?.id, ...(fams?.map(f => f.id) || [])].filter(Boolean) as string[])]
+                    sendTakenNotification(profile?.full_name || 'Pasien', m.nama_obat, dr?.id || '', ids)
                     toast.success(`${med.nama_obat} sudah diminum`)
                     loadData()
                   } catch { toast.error('Gagal') }

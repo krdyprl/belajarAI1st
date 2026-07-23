@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit3, Trash2, CheckCircle, Clock, Pill as PillIcon } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { getFamilyMedications, createMedication, updateMedication, deleteMedication, markAsTaken, logActivity } from '../lib/services'
-import { supabase } from '../lib/services'
+import { getFamilyMedications, createMedication, updateMedication, deleteMedication, markAsTaken, logActivity, sendTakenNotification, supabase } from '../lib/services'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Badge from '../components/Badge'
@@ -69,8 +68,12 @@ export default function MedicationPage() {
 
   async function handleTaken(id: string) {
     try {
-      await markAsTaken(id)
+      const m = await markAsTaken(id)
       logActivity(user!.id, 'taken', 'medication', id)
+      const { data: dr } = await supabase.from('profiles').select('id').eq('role', 'dokter').limit(1).maybeSingle()
+      const { data: fams } = await supabase.from('profiles').select('id').eq('family_id', profile?.family_id).in('role', ['dokter', 'keluarga'])
+      const ids = [...new Set([dr?.id, ...(fams?.map(f => f.id) || [])].filter(Boolean) as string[])]
+      sendTakenNotification(profile?.full_name || 'Pasien', m.nama_obat, dr?.id || '', ids)
       toast.success('Sudah diminum')
       loadMedications()
     } catch { toast.error('Gagal') }
