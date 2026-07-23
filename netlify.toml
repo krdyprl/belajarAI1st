@@ -1,0 +1,54 @@
+# ============================================
+# Netlify deployment config — AI Medication Assistant
+# ============================================
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# === Environment Variables ===
+# Set these di Netlify Dashboard (Site Settings → Environment Variables):
+# VITE_SUPABASE_URL
+# VITE_SUPABASE_ANON_KEY
+# VITE_GROQ_API_KEY
+# VITE_BPOM_API_KEY
+
+# === Build settings ===
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+# === SPA Redirect — semua route arahkan ke index.html ===
+# React Router handle routing di client-side
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# === Security Headers ===
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

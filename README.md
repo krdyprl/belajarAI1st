@@ -10,7 +10,7 @@
 ![Tailwind](https://img.shields.io/badge/Tailwind-4.0-06B6D4?logo=tailwindcss)
 ![Groq AI](https://img.shields.io/badge/Groq%20AI-LLM-FF6600)
 ![Playwright](https://img.shields.io/badge/Playwright-E2E-45BA4B?logo=playwright)
-![Vercel](https://img.shields.io/badge/Vercel-Deploy-000000?logo=vercel)
+![Netlify](https://img.shields.io/badge/Netlify-Deploy-00C7B7?logo=netlify)
 
 ---
 
@@ -129,7 +129,7 @@
 | **Icons** | Lucide React | Icon set |
 | **Notifikasi** | React Hot Toast | Toast notification |
 | **Testing** | Playwright | E2E testing (55 tests) |
-| **Deploy** | Vercel | Hosting SPA |
+| **Deploy** | Netlify | Hosting SPA |
 
 ---
 
@@ -259,9 +259,12 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_GROQ_API_KEY=gsk_your-groq-key
 VITE_BPOM_API_KEY=aip_live_your-bpom-key
+RESEND_API_KEY=re_your-resend-api-key
 ```
 
-> ⚠️ **Peringatan:** Project ini sebelumnya menyertakan `.env` di git (sudah di-commit dengan key real). Lihat [⚠️ Catatan Keamanan](#️-catatan-keamanan--key-bocor).
+> File `.env` sudah di `.gitignore` — tidak akan ter-commit.  
+> Copy `.env.example` ke `.env` dan isi dengan nilai yang sesuai.  
+> `RESEND_API_KEY` hanya untuk Supabase Edge Functions (email), tidak perlu di VITE_.
 
 ### 3. Setup Database
 
@@ -289,18 +292,21 @@ Ada 3 file seed di `supabase/seed/`:
 
 > **Catatan:** Seed menggunakan email hardcoded. Ganti dengan email asli sebelum menjalankan. Lihat detail di `supabase/seed/start.sql`.
 
-### 5. Setup Edge Functions
+### 5. Setup Edge Functions (Opsional — untuk email reminder)
 
-Untuk mengaktifkan reminder email, deploy fungsi Supabase Edge:
+Deploy fungsi Supabase Edge:
 
 ```bash
-cd supabase/functions/reminder
+# Deploy kedua fungsi
+supabase functions deploy send-email
 supabase functions deploy reminder
 ```
 
 Set environment variables di Supabase Dashboard:
-- `RESEND_API_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `RESEND_API_KEY` — API key Resend
+- `SUPABASE_SERVICE_ROLE_KEY` — Service role key Supabase (untuk reminder query database)
+
+> ⚠️ `RESEND_API_KEY` hanya untuk server-side (Edge Functions), tidak pernah terekspos ke client.
 
 ### 6. Jalankan
 
@@ -380,29 +386,41 @@ npm run test:e2e:ui
 
 ## 🌐 Deployment
 
-Project di-deploy ke **Vercel** sebagai SPA.
+Project di-deploy ke **Netlify** sebagai SPA.
 
-```json
-// vercel.json
-{
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install --legacy-peer-deps",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/krdyprl/belajarAI1st)
+
+### Manual Deploy
+
+```bash
+# 1. Build dulu
+npm run build
+
+# 2. Install Netlify CLI (opsional)
+npm install -g netlify-cli
+
+# 3. Deploy
+netlify deploy --prod --dir=dist
 ```
 
-**Langkah deploy:**
+### Langkah-langkah via Dashboard:
 
 1. Push ke GitHub repository
-2. Import di [Vercel](https://vercel.com) → Connect GitHub repo
-3. Tambah environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_GROQ_API_KEY, VITE_BPOM_API_KEY)
-4. Deploy — selesai
+2. Login ke [Netlify](https://app.netlify.com) → **Add new site** → **Import an existing project**
+3. Pilih GitHub repo `krdyprl/belajarAI1st`
+4. Set build settings (otomatis terbaca dari `netlify.toml`):
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist`
+5. Tambah environment variables di **Site Settings → Environment variables**:
+   ```
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   VITE_GROQ_API_KEY=gsk_your-groq-key
+   VITE_BPOM_API_KEY=aip_live_your-bpom-key
+   ```
+6. Klik **Deploy** — selesai!
 
-> `npm install --legacy-peer-deps` diperlukan karena dependency react-hook-form & @hookform/resolvers mungkin punya peer dependency conflict di Vercel environment.
+> ⚡ **Tip:** SPA redirect sudah diatur di `netlify.toml` — semua route `/*` diarahkan ke `/index.html` agar React Router bisa handle di client-side.
 
 ---
 
@@ -410,7 +428,7 @@ Project di-deploy ke **Vercel** sebagai SPA.
 
 | Resource | Link |
 |----------|------|
-| 🌐 **Live Demo** | [https://belajar-ai-1st.vercel.app](https://belajar-ai-1st.vercel.app) |
+| 🌐 **Live Demo** | [https://belajar-ai-1st.netlify.app](https://belajar-ai-1st.netlify.app) |
 | 📦 **GitHub Repo** | [https://github.com/krdyprl/belajarAI1st](https://github.com/krdyprl/belajarAI1st) |
 | 📄 **PRD** | [`docs/prd.md`](docs/prd.md) |
 | 📊 **DFD** | [`docs/dfd.md`](docs/dfd.md) |
@@ -446,7 +464,7 @@ Project di-deploy ke **Vercel** sebagai SPA.
 - [x] Gabung migrations jadi 1 (000_all.sql)
 - [x] Docs: PRD, DFD, Use Case
 - [x] 55 Playwright E2E tests
-- [x] Vercel deployment config
+- [x] Netlify deployment config
 
 **Sprint 3 — Polish**
 - [x] Perbaikan lanjutan
@@ -471,39 +489,40 @@ Project di-deploy ke **Vercel** sebagai SPA.
 | **Pages** | 10 route pages |
 | **Components** | 7 reusable UI components |
 | **Sprints** | 3 sprint |
-| **Deploy** | Vercel SPA |
+| **Deploy** | Netlify SPA |
 
 ---
 
-## ⚠️ Catatan Keamanan — Key Bocor
+## ⚠️ Keamanan — API Key Management
 
-> **File `.env` ikut ter-commit ke git repository!**
+Project ini menggunakan beberapa API key yang **tidak boleh** terekspos di git.
 
-Ini adalah **masalah keamanan serius**. Berikut key yang terekspos di git history:
+### Yang sudah dilakukan:
 
-| Key | Tipe | Risiko |
-|-----|------|--------|
-| `VITE_SUPABASE_ANON_KEY` | Public (anon key) | Rendah — key Supabase anon memang untuk publik, dengan RLS sebagai pengaman |
-| `VITE_SUPABASE_URL` | Public | Rendah — URL endpoint publik |
-| `VITE_GROQ_API_KEY` | **Sensitive** | ⚠️ **TINGGI** — API key Groq. Siapa pun bisa clone repo dan pakai key ini untuk request Groq, meski ada rate limit di sisi Groq |
-| `VITE_BPOM_API_KEY` | **Sensitive** | ⚠️ **TINGGI** — API key BPOM. Bisa dipakai pihak tidak berwenang |
+| Langkah | Status |
+|---------|--------|
+| `.env` di `.gitignore` | ✅ Sejak awal |
+| `.env.example` hanya berisi placeholder | ✅ |
+| Source code menggunakan `import.meta.env.VITE_*` | ✅ — di-load saat runtime, bukan hardcode |
+| Edge Functions pakai `Deno.env.get()` | ✅ — env var dari Supabase Dashboard |
+| Tidak ada key di git history | ✅ — diverifikasi |
 
-### Yang harus dilakukan segera:
+### Aturan untuk Developer:
 
-1. **Revoke key Groq** di [console.groq.com/keys](https://console.groq.com/keys) dan buat yang baru
-2. **Revoke key BPOM** di [apiindonesia.id](https://apiindonesia.id) dan buat yang baru
-3. **Hapus `.env` dari git tracking:**
-   ```bash
-   git rm --cached .env
-   echo ".env" >> .gitignore
-   ```
-4. **Rotate key di Vercel** jika sudah deploy
-5. **Force push** untuk bersihkan history (⚠️ destructive — koordinasi dengan tim dulu):
-   ```bash
-   git filter-branch --force --index-filter "git rm --cached --ignore-unmatch .env" --prune-empty --tag-name-filter cat -- --all
-   ```
+1. **Jangan pernah** commit file `.env` — sudah di `.gitignore`
+2. **Jangan** hardcode API key di source code — selalu pakai env vars
+3. **Set env vars** di Netlify Dashboard (bukan di file)
+4. **Set env vars** di Supabase Dashboard untuk Edge Functions
+5. **Rotate key** secara berkala jika ada indikasi bocor
 
-> **Kenapa `.env` bisa ke-commit?** Karena file `.env` ada di `.gitignore`, tapi file ini sudah ada sebelum `.gitignore` ditambahkan atau proses `git add .` pertama dilakukan sebelum mengatur `.gitignore`.
+### Dimana env vars harus diset:
+
+| Platform | Cara |
+|----------|------|
+| **Development lokal** | File `.env` di root project |
+| **Netlify (deploy)** | Netlify Dashboard → Site Settings → Environment Variables |
+| **Supabase Edge Functions** | Supabase Dashboard → Edge Functions → Secrets |
+| **Cron Reminder** | Set `RESEND_API_KEY` + `SUPABASE_SERVICE_ROLE_KEY` di Supabase |
 
 ---
 
